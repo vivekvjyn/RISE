@@ -1,0 +1,3 @@
+params:
+  smoothing_factor: 0.5
+  interpolation_gap: 0.02
