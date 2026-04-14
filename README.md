@@ -1,6 +1,8 @@
-# A Raga Independent Encoder for Svara Representation in Carnatic Music
+# RISE - Raga Independent Svara Encoder
 
-Self-supervised learning for raga independent svara representation, primarily aimed at Carnatic music transcription and related tasks such as performance analysis and melodic pattern recognition.
+Self-supervised learning for raga independent svara representation, primarily aimed at Carnatic music transcription and related tasks such as performance analysis and melodic pattern recognition. This codebase accompanies the DLFM 2026 submission:
+
+`A Raga Independent Encoder for Svara Representation in Carnatic Music - Vivek Vijayan, Thomas Nuttall, Xavier Serra`
 
 ## Setup
 
