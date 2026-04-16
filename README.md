@@ -7,8 +7,8 @@ Self-supervised learning for raga independent svara representation, primarily ai
 ## Setup
 
 ```bash
-git clone https://github.com/vivekvjyn/svara-representation.git
-cd svara-representation
+git clone https://github.com/MTG/RISE.git
+cd RISE
 pip install -r requirements.txt
 pip install -e .
 ```
