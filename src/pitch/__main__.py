@@ -7,8 +7,8 @@ def main():
     args = parse_args()
     logger = Logger()
 
-    varnam_svaras(args.smoothing_factor, args.interpolation_gap, logger)
-    varnam_svara_forms(args.smoothing_factor, args.interpolation_gap, logger)
+    #varnam_svaras(args.smoothing_factor, args.interpolation_gap, logger)
+    #varnam_svara_forms(args.smoothing_factor, args.interpolation_gap, logger)
     cmmr_plausible_svaras(args.smoothing_factor, args.interpolation_gap, logger)
 
 def parse_args():

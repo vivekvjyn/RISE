@@ -1,5 +1,5 @@
 params:
-  batch_size: 512
+  batch_size: 64
   catchup: 10
   depth: 5
   early_stopping: 30

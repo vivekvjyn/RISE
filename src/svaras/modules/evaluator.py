@@ -6,9 +6,10 @@ import matplotlib.pyplot as plt
 from svaras.modules.meter import Meter
 
 class Evaluator:
-    def __init__(self, model, logger):
+    def __init__(self, model, logger, device):
         self.model = model
         self.logger = logger
+        self.device = device
         self.meter = Meter()
 
     def __call__(self, data_loader, labels, raga, pretrained):
@@ -25,6 +26,11 @@ class Evaluator:
 
         for i, (prec, curr, succ, targets) in enumerate(data_loader):
             self.logger.pbar(i + 1, len(data_loader))
+
+            prec = prec.to(self.device)
+            curr = curr.to(self.device)
+            succ = succ.to(self.device)
+            targets = targets.to(self.device)
 
             logits = self._predict(prec, curr, succ)
             loss = loss_fn(logits, targets)

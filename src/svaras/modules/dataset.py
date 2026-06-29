@@ -2,12 +2,13 @@ import torch
 
 class Dataset(torch.utils.data.Dataset):
     def __init__(self, data, raga, labels, device):
-        self.prec = torch.tensor(data[0], dtype=torch.float32).to(device)
-        self.curr = torch.tensor(data[1], dtype=torch.float32).to(device)
-        self.succ = torch.tensor(data[2], dtype=torch.float32).to(device)
-        self.targets = torch.tensor(data[3], dtype=torch.long).to(device)
+        self.prec = torch.tensor(data[0], dtype=torch.float32)
+        self.curr = torch.tensor(data[1], dtype=torch.float32)
+        self.succ = torch.tensor(data[2], dtype=torch.float32)
+        self.targets = torch.tensor(data[3], dtype=torch.long)
         self.raga = raga
         self.labels = labels
+        self.device = device
 
     def __len__(self):
         return len(self.targets)
@@ -21,7 +22,7 @@ class Dataset(torch.utils.data.Dataset):
 
     def __str__(self):
         num_samples = len(self)
-        class_counts = torch.bincount(self.targets).cpu().numpy()
+        class_counts = torch.bincount(self.targets).numpy()
         class_distribution = {self.labels[i]: count for i, count in enumerate(class_counts)}
         return f"raga={self.raga}, num_samples={num_samples}, num_class={self.num_class} distribution={class_distribution}"
 

@@ -13,12 +13,18 @@ def main():
 
     with open("dataset/cmr.pkl", "rb") as f:
         dataset = pickle.load(f)
+    print(len(dataset))
     normalized_data = normalize(dataset)
     padded_data = zero_pad(normalized_data)
 
-    data_loader = torch.utils.data.DataLoader(Dataset(padded_data, device), batch_size=args.batch_size, shuffle=True)
+    data_loader = torch.utils.data.DataLoader(Dataset(padded_data), batch_size=args.batch_size, shuffle=True)
+    print(len(data_loader))
     model = Model(embed_dim=args.embed_dim, out_dim=args.out_dim, depth=args.depth).to(device)
-    simclr = Trainer(model, augmenter, tracker, logger)
+    model.load("model.pth", device)
+    for param in model.encoder.parameters():
+        param.requires_grad = False
+
+    simclr = Trainer(model, augmenter, tracker, logger, device)
 
     simclr(data_loader, epochs=args.epochs, lr=args.lr, patience=args.patience)
 

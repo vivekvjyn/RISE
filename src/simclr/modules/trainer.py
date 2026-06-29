@@ -4,11 +4,12 @@ import torch
 from info_nce import InfoNCE
 
 class Trainer:
-    def __init__(self, model, augmenter, tracker, logger):
+    def __init__(self, model, augmenter, tracker, logger, device):
         self.model = model
         self.augmenter = augmenter
         self.logger = logger
         self.tracker = tracker
+        self.device = device
 
     def __call__(self, data_loader, epochs, lr, patience):
         optimizer = torch.optim.Adam(self.model.parameters(), lr=lr)
@@ -26,6 +27,7 @@ class Trainer:
             if loss < min_loss:
                 min_loss = loss
                 self.model.encoder.save('encoder.pth')
+                self.model.save('model.pth')
                 self.logger(f"Model saved to {os.path.join(self.model.encoder.dir, 'encoder.pth')}")
 
         self.tracker.plot()
@@ -37,9 +39,9 @@ class Trainer:
         for i, (batch) in enumerate(data_loader):
             self.logger.pbar(i + 1, len(data_loader))
 
-            query_pitch = batch.clone()
-            query = self._project(query_pitch)
-            positive_pitch = self.augmenter(batch)
+            batch = batch.to(self.device)
+            query = self._project(batch)
+            positive_pitch = self.augmenter(batch).to(self.device)
             positive_key = self._project(positive_pitch)
 
             loss = loss_fn(query, positive_key)

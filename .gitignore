@@ -2,3 +2,6 @@ dataset/
 runs/
 **/__pycache__/
 *.egg-info/
+checkpoints
+!checkpoints/encoder.pth
+!checkpoints/decoder.pth

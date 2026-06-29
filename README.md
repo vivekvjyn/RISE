@@ -4,6 +4,8 @@ Self-supervised learning for raga independent svara representation, primarily ai
 
 `A Raga Independent Encoder for Svara Representation in Carnatic Music - Vivek Vijayan, Thomas Nuttall, Xavier Serra`
 
+---
+
 ## Setup
 
 ```bash
@@ -12,6 +14,8 @@ cd RISE
 pip install -r requirements.txt
 pip install -e .
 ```
+
+---
 
 ## Run experiments
 
@@ -31,7 +35,7 @@ pip install -e .
 
 > We pretrain an InceptionTime encoder using the InfoNCE loss on unannotated pitch contours from the CMR dataset. Positive pairs are created by applying data augmentations such as time warping and pitch drifting.
 
-<img src=".github/images/simclr.png" alt="simclr" width="500">
+<img src="images/simclr.png" alt="simclr" width="500">
 
 3. Fine-tune the pretrained model on annotated [Carnatic Varnam](https://doi.org/10.5281/zenodo.1257117) dataset using LoRA and report F1 score:
 
@@ -41,7 +45,7 @@ pip install -e .
 
 > We finetune the pretrained model on annotated data using cross-entropy loss for svara classification. Low-rank adaptation (LoRA) is used for efficient fine-tuning. we report F1 score for baseline and fine-tuned models.
 
-<img src=".github/images/lora.png" alt="simclr" width="500">
+<img src="images/lora.png" alt="simclr" width="500">
 
 4. Cluster svara embeddings on the Carnatic Varnam dataset using HDBSCAN and report Normalized Mutual Information (NMI):
 

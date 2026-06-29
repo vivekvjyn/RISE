@@ -150,7 +150,6 @@ def cmmr_plausible_svaras(smoothing_factor, interpolation_gap, logger):
 
             segment = pitch[(pitch_time >= start_time) & (pitch_time <= end_time)]
             plausible_svaras.append(segment)
-        break
 
     logger(f"\tNumber of samples: {len(plausible_svaras)}\n")
 
