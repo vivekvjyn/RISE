@@ -73,8 +73,8 @@ class Evaluator:
 
         map = RetrievalMAP()(preds, targets, indexes)
         mrr = RetrievalMRR()(preds, targets, indexes)
-        p1 = RetrievalPrecision(top_k=1)(preds, targets, indexes)
-        p5 = RetrievalPrecision(top_k=5)(preds, targets, indexes)
+        p1 = RetrievalPrecision(k=1)(preds, targets, indexes)
+        p5 = RetrievalPrecision(k=5)(preds, targets, indexes)
 
         return map.item(), mrr.item(), p1.item(), p5.item()
 
@@ -93,8 +93,8 @@ class Evaluator:
 
             map = RetrievalMAP()(preds, targets, indexes)
             mrr = RetrievalMRR()(preds, targets, indexes)
-            p1_score = RetrievalPrecision(top_k=1)(preds, targets, indexes)
-            p5_score = RetrievalPrecision(top_k=5)(preds, targets, indexes)
+            p1_score = RetrievalPrecision(k=1)(preds, targets, indexes)
+            p5_score = RetrievalPrecision(k=5)(preds, targets, indexes)
 
             average_precisions[ids[i].item()].append(map.item())
             reciprocal_ranks[ids[i].item()].append(mrr.item())
@@ -109,14 +109,14 @@ class Evaluator:
 
     def _plot(self, data, metric):
         plt.figure(figsize=(10, 6))
-        sns.boxplot(data=[data[id] for id in sorted(data.keys())], palette="tab10")
-        plt.xticks(ticks=range(len(data)), labels=sorted(data.keys()))
-        plt.xlabel("Phrase ID")
-        plt.ylabel(f"{metric}")
-        plt.title(f"Phrase-wise {metric}")
+        sns.set_style("whitegrid")
+        ax = sns.boxplot(data=[data[id] for id in sorted(data.keys())], palette="tab10", width=0.5, linewidth=1.2)
+        plt.xticks(ticks=range(len(data)), labels=sorted(data.keys()), fontsize=14)
+        plt.yticks(fontsize=12)
+        plt.xlabel("Phrase ID", fontsize=16)
+        plt.ylabel(f"{metric}", fontsize=16)
         plt.ylim(-0.1, 1.1)
         plt.tight_layout()
-        plt.grid(axis='y', linestyle='--', alpha=0.7)
         os.makedirs('results', exist_ok=True)
-        plt.savefig(os.path.join('results', f"{metric.lower()}.png"))
+        plt.savefig(os.path.join('results', f"{metric.lower()}.png"), dpi=150, bbox_inches='tight')
         plt.close()

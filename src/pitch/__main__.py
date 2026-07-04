@@ -1,7 +1,7 @@
 import argparse
 
 from pitch import Logger
-from pitch import varnam_svaras, varnam_svara_forms, cmmr_plausible_svaras
+from pitch import varnam_svaras, varnam_svara_forms, cmmr_plausible_svaras, iam_svaras
 
 def main():
     args = parse_args()
@@ -9,7 +9,8 @@ def main():
 
     #varnam_svaras(args.smoothing_factor, args.interpolation_gap, logger)
     #varnam_svara_forms(args.smoothing_factor, args.interpolation_gap, logger)
-    cmmr_plausible_svaras(args.smoothing_factor, args.interpolation_gap, logger)
+    #cmmr_plausible_svaras(args.smoothing_factor, args.interpolation_gap, logger)
+    iam_svaras(args.smoothing_factor, args.interpolation_gap, logger)
 
 def parse_args():
     parser = argparse.ArgumentParser(description="svara representation learning for carnatic music transcription")

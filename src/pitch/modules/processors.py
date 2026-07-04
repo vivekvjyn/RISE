@@ -108,6 +108,68 @@ def varnam_svara_forms(smoothing_factor, interpolation_gap, logger):
     save_data(svaras, os.path.join('dataset', 'forms', 'svaras.pkl'))
     save_data(clusters, os.path.join('dataset', 'forms', 'clusters.pkl'))
 
+def iam_svaras(smoothing_factor, interpolation_gap, logger):
+    with open(os.path.join("data", "iam_tonics.yaml"), "r") as f:
+        tonics = yaml.safe_load(f)
+
+    sequences, labels = [], []
+    excluded = {39, 40, 42, 48, 67, 68, 76, 83, 118, 143, 146, 148, 150}
+    idx = 0
+
+    for file in os.listdir(os.path.join('data', 'iam_annotations')):
+        performer = file.replace('.tsv', '')
+        logger(f"{performer}")
+
+        tonic = float(tonics[performer])
+        if tonic is None or np.isnan(tonic):
+            logger(f"\tSkipping {performer} (no tonic)\n")
+            continue
+
+        annotations_path = os.path.join('data', 'iam_annotations', file)
+        annotations = pd.read_csv(annotations_path, delimiter='\t')
+
+        pitch_track_path = os.path.join('data', 'iam_pitch_tracks', file)
+        pitch_track = pd.read_csv(pitch_track_path, delimiter='\t', names=['time', 'frequency'], header=None)
+        time = pitch_track['time'].values
+        pitch = pitch_track['frequency'].values
+        pitch[pitch == 0] = np.nan
+
+        pitch = interpolate(pitch, np.nan, interpolation_gap)
+        pitch = smooth_pitch_curve(time, pitch, smoothing_factor=smoothing_factor, min_points=4)
+        pitch = 1200 * np.log2(pitch / tonic)
+
+        for i, row in annotations.iterrows():
+            logger.pbar(i + 1, len(annotations))
+
+            parts = row["Begin time"].split(":")
+            start_time = float(parts[0]) * 3600 + float(parts[1]) * 60 + float(parts[2])
+            parts = row["End time"].split(":")
+            end_time = float(parts[0]) * 3600 + float(parts[1]) * 60 + float(parts[2])
+            annotation = int(row["Annotation"])
+
+            segment = pitch[np.where((time >= start_time) & (time <= end_time))[0]]
+            segment = segment[~np.isnan(segment)]
+            if len(segment) < 10:
+                continue
+            if np.ptp(segment) < 50:
+                continue
+            x = np.arange(len(segment))
+            coeffs = np.polyfit(x, segment, 1)
+            residual = segment - np.polyval(coeffs, x)
+            if np.std(residual) < 10:
+                continue
+            if idx in excluded:
+                idx += 1
+                continue
+            sequences.append(segment)
+            labels.append(annotation)
+            idx += 1
+
+    logger(f"\tNumber of files: {len(os.listdir(os.path.join('data', 'iam_annotations')))}\tNumber of samples: {len(sequences)}\n")
+
+    save_data(sequences, os.path.join('dataset', 'segments.pkl'))
+    save_data(labels, os.path.join('dataset', 'ids.pkl'))
+
 def cmmr_plausible_svaras(smoothing_factor, interpolation_gap, logger):
     tonics = pd.read_csv(os.path.join('data', "cmr_tonics.tsv"), delimiter="\t")
     note_lengths = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0]

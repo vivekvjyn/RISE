@@ -2,13 +2,13 @@ import os
 import argparse
 import pickle
 import torch
-from logger import Logger
+from pattern.modules.logger import Logger
 
 from pattern import Model, Evaluator, Embedder, Table, load_pitch
 
 def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    logger = Logger(log_dir="logs")
+    logger = Logger()
     args = parse_args()
 
     sequences = load_pitch(os.path.join("dataset", "segments.pkl"))
