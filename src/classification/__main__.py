@@ -13,7 +13,7 @@ from classification import Model, Dataset, load_pitch
 from utils import train_classifier, evaluate_classifier
 
 console = Console()
-CACHE = ".cache"
+CACHE_DIR = ".cache"
 
 
 def main():
@@ -21,12 +21,12 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     with mlflow.start_run(run_name=f"Classification ({args['dataset']})"):
-        prec = load_pitch(os.path.join(CACHE, args["dataset"], "prec.pkl"))
-        curr = load_pitch(os.path.join(CACHE, args["dataset"], "curr.pkl"))
-        succ = load_pitch(os.path.join(CACHE, args["dataset"], "succ.pkl"))
-        with open(os.path.join(CACHE, args["dataset"], "svaras.pkl"), "rb") as f:
+        prec = load_pitch(os.path.join(CACHE_DIR, args["dataset"], "prec.pkl"))
+        curr = load_pitch(os.path.join(CACHE_DIR, args["dataset"], "curr.pkl"))
+        succ = load_pitch(os.path.join(CACHE_DIR, args["dataset"], "succ.pkl"))
+        with open(os.path.join(CACHE_DIR, args["dataset"], "svaras.pkl"), "rb") as f:
             svaras = pickle.load(f)
-        with open(os.path.join(CACHE, args["dataset"], "labels.pkl"), "rb") as f:
+        with open(os.path.join(CACHE_DIR, args["dataset"], "labels.pkl"), "rb") as f:
             labels = pickle.load(f)
 
         train_prec, test_prec, train_curr, test_curr, train_succ, test_succ, train_labels, test_labels = (
@@ -91,7 +91,8 @@ def parse_args():
         parser.add_argument(f"--{k.replace('_', '-')}", type=type(v), default=v)
     args = parser.parse_args()
     try:
-        cfg = yaml.safe_load(open("config.yaml")).get("classification", {})
+        with open("configs.yaml") as f:
+            cfg = yaml.safe_load(f).get("classification", {})
         for k in defaults:
             if k in cfg:
                 setattr(args, k, cfg[k])

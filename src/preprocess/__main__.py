@@ -8,8 +8,8 @@ from utils.audio import save_data
 from utils.pitch import smooth_pitch_curve, interpolate
 
 console = Console()
-CACHE = ".cache"
-DATA = "data"
+CACHE_DIR = ".cache"
+DATA_DIR = "data"
 
 
 def main():
@@ -27,7 +27,8 @@ def parse_args():
         parser.add_argument(f"--{k.replace('_', '-')}", type=type(v), default=v)
     args = parser.parse_args()
     try:
-        cfg = yaml.safe_load(open("config.yaml")).get("pitch", {})
+        with open("configs.yaml") as f:
+            cfg = yaml.safe_load(f).get("pitch", {})
         for k in defaults:
             if k in cfg:
                 setattr(args, k, cfg[k])
@@ -37,10 +38,10 @@ def parse_args():
 
 
 def varnam_svaras(smoothing_factor, interpolation_gap):
-    with open(os.path.join(DATA, "Varnam", "tonics.yaml"), "r") as f:
+    with open(os.path.join(DATA_DIR, "Varnam", "tonics.yaml")) as f:
         tonics = yaml.safe_load(f)
 
-    for raga in os.listdir(os.path.join(DATA, "Varnam", "annotations")):
+    for raga in os.listdir(os.path.join(DATA_DIR, "Varnam", "annotations")):
         console.print(f"[bold]{raga.upper()}[/bold]")
         prec, curr, succ, svaras = [], [], [], []
         labels = (
@@ -51,19 +52,15 @@ def varnam_svaras(smoothing_factor, interpolation_gap):
             else ["S", "R", "G", "M", "P", "D", "N"]
         )
 
-        for performer in os.listdir(os.path.join(DATA, "Varnam", "annotations", raga)):
-            annotations_path = os.path.join(DATA, "Varnam", "annotations", raga, performer)
-            annotations = pd.read_csv(annotations_path, delimiter="\t")
-
-            pitch_track_path = os.path.join(
-                DATA, "Varnam", "pitch_tracks", raga, performer.replace(f"_{raga}", "")
-            )
-            pitch_track = pd.read_csv(pitch_track_path, delimiter="\t", names=["time", "frequency"], header=None)
+        for performer in os.listdir(os.path.join(DATA_DIR, "Varnam", "annotations", raga)):
+            artist = performer.replace(".tsv", "")
+            annotations = pd.read_csv(os.path.join(DATA_DIR, "Varnam", "annotations", raga, performer), delimiter="\t")
+            pitch_track = pd.read_csv(os.path.join(DATA_DIR, "Varnam", "pitch_tracks", raga, f"{artist}.tsv"), delimiter="\t", names=["time", "frequency"], header=None)
             time = pitch_track["time"].values
             pitch = pitch_track["frequency"].values
             pitch[pitch == 0] = np.nan
 
-            tonic = float(tonics[performer.split("_")[0]])
+            tonic = float(tonics[artist])
             pitch = interpolate(pitch, np.nan, interpolation_gap)
             pitch = smooth_pitch_curve(time, pitch, smoothing_factor=smoothing_factor, min_points=4)
             pitch = 1200 * np.log2(pitch / tonic)
@@ -80,41 +77,39 @@ def varnam_svaras(smoothing_factor, interpolation_gap):
 
         console.print(f"\tSamples: {len(svaras)}, Classes: {len(set(svaras))}\n")
 
-        save_data(prec, os.path.join(CACHE, raga, "prec.pkl"))
-        save_data(curr, os.path.join(CACHE, raga, "curr.pkl"))
-        save_data(succ, os.path.join(CACHE, raga, "succ.pkl"))
-        save_data(svaras, os.path.join(CACHE, raga, "svaras.pkl"))
-        save_data(labels, os.path.join(CACHE, raga, "labels.pkl"))
+        save_data(prec, os.path.join(CACHE_DIR, raga, "prec.pkl"))
+        save_data(curr, os.path.join(CACHE_DIR, raga, "curr.pkl"))
+        save_data(succ, os.path.join(CACHE_DIR, raga, "succ.pkl"))
+        save_data(svaras, os.path.join(CACHE_DIR, raga, "svaras.pkl"))
+        save_data(labels, os.path.join(CACHE_DIR, raga, "labels.pkl"))
 
 
 def varnam_svara_forms(smoothing_factor, interpolation_gap):
-    annotations = pd.read_csv(os.path.join(DATA, "Varnam", "svara_forms.csv"))
-    with open(os.path.join(DATA, "Varnam", "tonics.yaml"), "r") as f:
+    annotations = pd.read_csv(os.path.join(DATA_DIR, "Varnam", "svara_forms.tsv"), delimiter="\t")
+    with open(os.path.join(DATA_DIR, "Varnam", "tonics.yaml")) as f:
         tonics = yaml.safe_load(f)
 
     prec, curr, succ, svaras, clusters = [], [], [], [], []
     labels = ["S", "R", "G", "M", "P", "D", "N"]
 
-    for raga in os.listdir(os.path.join(DATA, "Varnam", "annotations")):
+    for raga in os.listdir(os.path.join(DATA_DIR, "Varnam", "annotations")):
         console.print(f"[bold]{raga.upper()}[/bold]")
 
-        for performer in os.listdir(os.path.join(DATA, "Varnam", "annotations", raga)):
-            pitch_track_path = os.path.join(
-                DATA, "Varnam", "pitch_tracks", raga, performer.replace(f"_{raga}", "")
-            )
-            pitch_track = pd.read_csv(pitch_track_path, delimiter="\t", names=["time", "frequency"], header=None)
+        for performer in os.listdir(os.path.join(DATA_DIR, "Varnam", "annotations", raga)):
+            artist = performer.replace(".tsv", "")
+            pitch_track = pd.read_csv(os.path.join(DATA_DIR, "Varnam", "pitch_tracks", raga, f"{artist}.tsv"), delimiter="\t", names=["time", "frequency"], header=None)
             time = pitch_track["time"].values
             pitch = pitch_track["frequency"].values
             pitch[pitch == 0] = np.nan
 
-            tonic = float(tonics[performer.split("_")[0]])
+            tonic = float(tonics[artist])
             pitch = interpolate(pitch, np.nan, interpolation_gap)
             pitch = smooth_pitch_curve(time, pitch, smoothing_factor=smoothing_factor, min_points=4)
             pitch = 1200 * np.log2(pitch / tonic)
 
             perf_annotations = annotations[
                 (annotations["raga"] == raga)
-                & (annotations["performer"] == performer.replace(f"_{raga}.tsv", ""))
+                & (annotations["performer"] == artist)
             ]
 
             for _, row in perf_annotations.iterrows():
@@ -129,22 +124,22 @@ def varnam_svara_forms(smoothing_factor, interpolation_gap):
 
     console.print(f"\tSamples: {len(svaras)}\n")
 
-    save_data(prec, os.path.join(CACHE, "forms", "prec.pkl"))
-    save_data(curr, os.path.join(CACHE, "forms", "curr.pkl"))
-    save_data(succ, os.path.join(CACHE, "forms", "succ.pkl"))
-    save_data(svaras, os.path.join(CACHE, "forms", "svaras.pkl"))
-    save_data(clusters, os.path.join(CACHE, "forms", "clusters.pkl"))
+    save_data(prec, os.path.join(CACHE_DIR, "forms", "prec.pkl"))
+    save_data(curr, os.path.join(CACHE_DIR, "forms", "curr.pkl"))
+    save_data(succ, os.path.join(CACHE_DIR, "forms", "succ.pkl"))
+    save_data(svaras, os.path.join(CACHE_DIR, "forms", "svaras.pkl"))
+    save_data(clusters, os.path.join(CACHE_DIR, "forms", "clusters.pkl"))
 
 
 def iam_svaras(smoothing_factor, interpolation_gap):
-    with open(os.path.join(DATA, "IAMMS", "tonics.yaml"), "r") as f:
+    with open(os.path.join(DATA_DIR, "IAMMS", "tonics.yaml")) as f:
         tonics = yaml.safe_load(f)
 
     sequences, labels = [], []
     excluded = {39, 40, 42, 48, 67, 68, 76, 83, 118, 143, 146, 148, 150}
     idx = 0
 
-    for file in os.listdir(os.path.join(DATA, "IAMMS", "annotations")):
+    for file in os.listdir(os.path.join(DATA_DIR, "IAMMS", "annotations")):
         performer = file.replace(".tsv", "")
         console.print(f"{performer}")
 
@@ -152,11 +147,8 @@ def iam_svaras(smoothing_factor, interpolation_gap):
         if tonic is None or np.isnan(tonic):
             continue
 
-        annotations_path = os.path.join(DATA, "IAMMS", "annotations", file)
-        annotations = pd.read_csv(annotations_path, delimiter="\t")
-
-        pitch_track_path = os.path.join(DATA, "IAMMS", "pitch_tracks", file)
-        pitch_track = pd.read_csv(pitch_track_path, delimiter="\t", names=["time", "frequency"], header=None)
+        annotations = pd.read_csv(os.path.join(DATA_DIR, "IAMMS", "annotations", file), delimiter="\t")
+        pitch_track = pd.read_csv(os.path.join(DATA_DIR, "IAMMS", "pitch_tracks", file), delimiter="\t", names=["time", "frequency"], header=None)
         time = pitch_track["time"].values
         pitch = pitch_track["frequency"].values
         pitch[pitch == 0] = np.nan
@@ -188,29 +180,28 @@ def iam_svaras(smoothing_factor, interpolation_gap):
 
     console.print(f"\tSamples: {len(sequences)}\n")
 
-    save_data(sequences, os.path.join(CACHE, "segments.pkl"))
-    save_data(labels, os.path.join(CACHE, "ids.pkl"))
+    save_data(sequences, os.path.join(CACHE_DIR, "segments.pkl"))
+    save_data(labels, os.path.join(CACHE_DIR, "ids.pkl"))
 
 
 def cmmr_plausible_svaras(smoothing_factor, interpolation_gap):
-    tonics = pd.read_csv(os.path.join(DATA, "CMR", "tonics.tsv"), delimiter="\t")
+    tonics = pd.read_csv(os.path.join(DATA_DIR, "CMR", "tonics.tsv"), delimiter="\t")
     note_lengths = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0]
     plausible_svaras = []
 
-    for pitch_track_file in os.listdir(os.path.join(DATA, "CMR", "pitch_tracks")):
+    for pitch_track_file in os.listdir(os.path.join(DATA_DIR, "CMR", "pitch_tracks")):
         uid = int(pitch_track_file.replace(".tsv", ""))
         tonic = tonics[tonics["UID"] == uid]["tonic"].values[0]
         if tonic is None or np.isnan(tonic):
             continue
 
-        beats_path = os.path.join(DATA, "CMR", "beats", pitch_track_file)
+        beats_path = os.path.join(DATA_DIR, "CMR", "beats", pitch_track_file)
         if not os.path.exists(beats_path):
             continue
         beats = pd.read_csv(beats_path, header=None, names=["time", "beat"])
         beats_time = beats["time"].values
 
-        pitch_track_path = os.path.join(DATA, "CMR", "pitch_tracks", pitch_track_file)
-        pitch_track = pd.read_csv(pitch_track_path, header=None, names=["time", "frequency"], delimiter="\t")
+        pitch_track = pd.read_csv(os.path.join(DATA_DIR, "CMR", "pitch_tracks", pitch_track_file), header=None, names=["time", "frequency"], delimiter="\t")
         pitch = pitch_track["frequency"].values
         pitch_time = pitch_track["time"].values
         pitch = np.where(pitch == 0, np.nan, pitch)
@@ -232,7 +223,7 @@ def cmmr_plausible_svaras(smoothing_factor, interpolation_gap):
             plausible_svaras.append(segment)
 
     console.print(f"\tSamples: {len(plausible_svaras)}\n")
-    save_data(plausible_svaras, os.path.join(CACHE, "cmr.pkl"))
+    save_data(plausible_svaras, os.path.join(CACHE_DIR, "cmr.pkl"))
 
 
 if __name__ == "__main__":

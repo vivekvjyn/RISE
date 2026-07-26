@@ -10,7 +10,7 @@ from pretrain import Model, Dataset, normalize, zero_pad
 from utils import augment, train_ssl
 
 console = Console()
-CACHE = ".cache"
+CACHE_DIR = ".cache"
 
 
 def main():
@@ -18,7 +18,7 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     with mlflow.start_run(run_name="Pretrain"):
-        with open(os.path.join(CACHE, "cmr.pkl"), "rb") as f:
+        with open(os.path.join(CACHE_DIR, "cmr.pkl"), "rb") as f:
             dataset = pickle.load(f)
 
         padded = zero_pad(normalize(dataset))
@@ -39,7 +39,8 @@ def parse_args():
         parser.add_argument(f"--{k.replace('_', '-')}", type=type(v), default=v)
     args = parser.parse_args()
     try:
-        cfg = yaml.safe_load(open("config.yaml")).get("pretrain", {})
+        with open("configs.yaml") as f:
+            cfg = yaml.safe_load(f).get("pretrain", {})
         for k in defaults:
             if k in cfg:
                 setattr(args, k, cfg[k])

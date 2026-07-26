@@ -15,7 +15,7 @@ from pattern_recognition import Model, Dataset, load_pitch
 from utils import embed_ssl
 
 console = Console()
-CACHE = ".cache"
+CACHE_DIR = ".cache"
 
 
 def main():
@@ -23,8 +23,8 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     with mlflow.start_run(run_name="Pattern Recognition"):
-        sequences = load_pitch(os.path.join(CACHE, "segments.pkl"))
-        with open(os.path.join(CACHE, "ids.pkl"), "rb") as f:
+        sequences = load_pitch(os.path.join(CACHE_DIR, "segments.pkl"))
+        with open(os.path.join(CACHE_DIR, "ids.pkl"), "rb") as f:
             ids = pickle.load(f)
 
         model = Model(task="pattern", embed_dim=args["embed_dim"], depth=args["depth"], num_classes=len(set(ids))).to(device)
@@ -96,7 +96,8 @@ def parse_args():
         parser.add_argument(f"--{k.replace('_', '-')}", type=type(v), default=v)
     args = parser.parse_args()
     try:
-        cfg = yaml.safe_load(open("config.yaml")).get("pattern_recognition", {})
+        with open("configs.yaml") as f:
+            cfg = yaml.safe_load(f).get("pattern_recognition", {})
         for k in defaults:
             if k in cfg:
                 setattr(args, k, cfg[k])

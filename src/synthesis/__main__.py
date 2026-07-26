@@ -12,7 +12,7 @@ from synthesis import Model, InceptionDecoder, Dataset, normalize, denormalize, 
 from utils import train_decoder, embed_ssl, generate, plot_reconstruction, plot_boxplot
 
 console = Console()
-CACHE = ".cache"
+CACHE_DIR = ".cache"
 VARNAM_RAGAS = ["abhogi", "begada", "kalyani", "mohanam", "sahana", "saveri", "sri"]
 
 
@@ -27,7 +27,7 @@ def main():
         decoder = InceptionDecoder(embed_dim=args["embed_dim"], depth=args["depth"]).to(device)
         decoder.load_state_dict(torch.load(os.path.join("checkpoints", "decoder.pth"), map_location=device))
 
-        with open(os.path.join(CACHE, "cmr.pkl"), "rb") as f:
+        with open(os.path.join(CACHE_DIR, "cmr.pkl"), "rb") as f:
             all_data = pickle.load(f)
         train_data = all_data[:25000]
         test_data = _load_varnam()
@@ -98,7 +98,7 @@ def main():
 def _load_varnam():
     data = []
     for raga in VARNAM_RAGAS:
-        with open(os.path.join(CACHE, raga, "curr.pkl"), "rb") as f:
+        with open(os.path.join(CACHE_DIR, raga, "curr.pkl"), "rb") as f:
             data.extend(pickle.load(f))
     return data
 
@@ -110,7 +110,8 @@ def parse_args():
         parser.add_argument(f"--{k.replace('_', '-')}", type=type(v), default=v)
     args = parser.parse_args()
     try:
-        cfg = yaml.safe_load(open("config.yaml")).get("synthesis", {})
+        with open("configs.yaml") as f:
+            cfg = yaml.safe_load(f).get("synthesis", {})
         for k in defaults:
             if k in cfg:
                 setattr(args, k, cfg[k])

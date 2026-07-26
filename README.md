@@ -1,8 +1,8 @@
-# RISE - Raga Independent Svara Encoder
+# RISE — Raga Independent Svara Encoder
 
-Self-supervised learning for raga independent svara representation, primarily aimed at Carnatic music transcription and related tasks such as performance analysis and melodic pattern recognition. This codebase accompanies the DLFM 2026 submission:
+Self-supervised learning for raga independent svara representation, primarily aimed at Carnatic music transcription and related tasks such as performance analysis and melodic pattern recognition. This codebase accompanies both the DLfM 2026 submission and the Master Thesis, Sound and Music Computing (2026 batch), Universitat Pompeu Fabra:
 
-`A Raga Independent Encoder for Svara Representation in Carnatic Music - Vivek Vijayan, Thomas Nuttall, Xavier Serra`
+> *A Raga Independent Encoder for Svara Representation in Carnatic Music* — Vivek Vijayan, Thomas Nuttall, Xavier Serra
 
 ---
 
@@ -15,42 +15,41 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
----
-
-## Run experiments
-
-1. Prepare dataset:
+## Usage
 
 ```bash
-./scripts/pitch.sh
+./run.sh <experiment>
 ```
 
-> We extract pitch contours from both the Carnatic Music Rhythm (CMR) and Carnatic Varnam datasets. For the CMR dataset, we sample plausible svara candidates from the pitch contours using the beat annotations, while for the Carnatic Varnam dataset, we use the provided svara annotations.
+Experiments: `preprocess`, `pretrain`, `classification`, `clustering`, `pattern_recognition`, `synthesis`
 
-2. Pre-train the model on [Carnatic Music Rhythm (CMR)](https://zenodo.org/records/1264394) dataset:
+## Experiments
 
-```bash
-./scripts/ssl.sh
+| Experiment | Description | Metrics |
+|---|---|---|
+| `preprocess` | Extract pitch contours from CMR and Varnam datasets, sample svara candidates | — |
+| `pretrain` | Self-supervised pretraining of InceptionTime encoder using InfoNCE loss on unannotated pitch contours with augmentations (time warping, pitch drifting) | — |
+| `classification` | Fine-tune pretrained model on annotated Varnam data for svara classification using LoRA | `F1 Score` |
+| `clustering` | Cluster svara embeddings using HDBSCAN against expert svara-form annotations | `Normalized Mutual Information` |
+| `pattern_recognition` | Retrieve melodic patterns using cosine similarity on encoder embeddings | `Mean Average Precision`, `Mean Reciprocal Rank`, `Precision@k` |
+| `synthesis` | Reconstruct pitch contours from encoder embeddings using a transpose-inception decoder | `Dynamic Time Warping Distance`, `Periodicity Error`, `Pitch Position Error` |
+
+## Citation
+
+```bibtex
+@inproceedings{10.1145/3815723.3815730,
+  author    = {Vijayan, Vivek and Nuttall, Thomas and Serra, Xavier},
+  title     = {A Rāga Independent Encoder for Svara Representation in Carnatic Music},
+  year      = {2026},
+  isbn      = {9798400723698},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  url       = {https://doi.org/10.1145/3815723.3815730},
+  doi       = {10.1145/3815723.3815730},
+  booktitle = {Proceedings of the 13th International Conference on Digital Libraries for Musicology},
+  pages     = {56--62},
+  numpages  = {7},
+  keywords  = {Carnatic music, Svara representation, Representation learning, Self-supervised learning, Pitch contour, Contrastive learning},
+  series    = {DLfM '26}
+}
 ```
-
-> We pretrain an InceptionTime encoder using the InfoNCE loss on unannotated pitch contours from the CMR dataset. Positive pairs are created by applying data augmentations such as time warping and pitch drifting.
-
-<img src="images/simclr.png" alt="simclr" width="500">
-
-3. Fine-tune the pretrained model on annotated [Carnatic Varnam](https://doi.org/10.5281/zenodo.1257117) dataset using LoRA and report F1 score:
-
-```bash
-./scripts/svaras.sh
-```
-
-> We finetune the pretrained model on annotated data using cross-entropy loss for svara classification. Low-rank adaptation (LoRA) is used for efficient fine-tuning. we report F1 score for baseline and fine-tuned models.
-
-<img src="images/lora.png" alt="simclr" width="500">
-
-4. Cluster svara embeddings on the Carnatic Varnam dataset using HDBSCAN and report Normalized Mutual Information (NMI):
-
-```bash
-./scripts/gamakas.sh
-```
-
-> We evaluate the learned representations by clustering svara embeddings to identify distinct svara forms (gamaka realizations). HDBSCAN is applied independently for each svara, and the resulting clusters are compared against expert-provided svara-form annotations using the Normalized Mutual Information (NMI) score.

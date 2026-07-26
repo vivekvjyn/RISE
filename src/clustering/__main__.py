@@ -16,7 +16,7 @@ from clustering import Model, Dataset, load_pitch
 from utils import train_classifier, embed_triplet
 
 console = Console()
-CACHE = ".cache"
+CACHE_DIR = ".cache"
 
 
 def main():
@@ -24,12 +24,12 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     with mlflow.start_run(run_name="Clustering"):
-        prec, prec_processed = load_pitch(os.path.join(CACHE, "forms", "prec.pkl"))
-        curr, curr_processed = load_pitch(os.path.join(CACHE, "forms", "curr.pkl"))
-        succ, succ_processed = load_pitch(os.path.join(CACHE, "forms", "succ.pkl"))
-        with open(os.path.join(CACHE, "forms", "svaras.pkl"), "rb") as f:
+        prec, prec_processed = load_pitch(os.path.join(CACHE_DIR, "forms", "prec.pkl"))
+        curr, curr_processed = load_pitch(os.path.join(CACHE_DIR, "forms", "curr.pkl"))
+        succ, succ_processed = load_pitch(os.path.join(CACHE_DIR, "forms", "succ.pkl"))
+        with open(os.path.join(CACHE_DIR, "forms", "svaras.pkl"), "rb") as f:
             svaras = pickle.load(f)
-        with open(os.path.join(CACHE, "forms", "clusters.pkl"), "rb") as f:
+        with open(os.path.join(CACHE_DIR, "forms", "clusters.pkl"), "rb") as f:
             forms = pickle.load(f)
 
         svara_forms = list(zip(svaras, forms))
@@ -89,7 +89,8 @@ def parse_args():
         parser.add_argument(f"--{k.replace('_', '-')}", type=type(v), default=v)
     args = parser.parse_args()
     try:
-        cfg = yaml.safe_load(open("config.yaml")).get("clustering", {})
+        with open("configs.yaml") as f:
+            cfg = yaml.safe_load(f).get("clustering", {})
         for k in defaults:
             if k in cfg:
                 setattr(args, k, cfg[k])
