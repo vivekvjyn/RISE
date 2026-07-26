@@ -56,13 +56,13 @@ def varnam_svaras(smoothing_factor, interpolation_gap):
             artist = performer.replace(".tsv", "")
             annotations = pd.read_csv(os.path.join(DATA_DIR, "Varnam", "annotations", raga, performer), delimiter="\t")
             pitch_track = pd.read_csv(os.path.join(DATA_DIR, "Varnam", "pitch_tracks", raga, f"{artist}.tsv"), delimiter="\t", names=["time", "frequency"], header=None)
-            time = pitch_track["time"].values
+            times = pitch_track["time"].values
             pitch = pitch_track["frequency"].values
             pitch[pitch == 0] = np.nan
 
             tonic = float(tonics[artist])
             pitch = interpolate(pitch, np.nan, interpolation_gap)
-            pitch = smooth_pitch_curve(time, pitch, smoothing_factor=smoothing_factor, min_points=4)
+            pitch = smooth_pitch_curve(times, pitch, smoothing_factor=smoothing_factor, min_points=4)
             pitch = 1200 * np.log2(pitch / tonic)
 
             for _, row in annotations.iterrows():
@@ -70,9 +70,9 @@ def varnam_svaras(smoothing_factor, interpolation_gap):
                 end_time = float(row["End time"].split(":")[-2]) * 60 + float(row["End time"].split(":")[-1])
                 annotation = row["Annotation"][0]
 
-                prec.append(pitch[np.where((time > start_time - 0.5) & (time < start_time))[0]])
-                curr.append(pitch[np.where((time > start_time) & (time < end_time))[0]])
-                succ.append(pitch[np.where((time > end_time) & (time < end_time + 0.5))[0]])
+                prec.append(pitch[np.where((times > start_time - 0.5) & (times < start_time))[0]])
+                curr.append(pitch[np.where((times > start_time) & (times < end_time))[0]])
+                succ.append(pitch[np.where((times > end_time) & (times < end_time + 0.5))[0]])
                 svaras.append(labels.index(annotation))
 
         console.print(f"\tSamples: {len(svaras)}, Classes: {len(set(svaras))}\n")
@@ -98,13 +98,13 @@ def varnam_svara_forms(smoothing_factor, interpolation_gap):
         for performer in os.listdir(os.path.join(DATA_DIR, "Varnam", "annotations", raga)):
             artist = performer.replace(".tsv", "")
             pitch_track = pd.read_csv(os.path.join(DATA_DIR, "Varnam", "pitch_tracks", raga, f"{artist}.tsv"), delimiter="\t", names=["time", "frequency"], header=None)
-            time = pitch_track["time"].values
+            times = pitch_track["time"].values
             pitch = pitch_track["frequency"].values
             pitch[pitch == 0] = np.nan
 
             tonic = float(tonics[artist])
             pitch = interpolate(pitch, np.nan, interpolation_gap)
-            pitch = smooth_pitch_curve(time, pitch, smoothing_factor=smoothing_factor, min_points=4)
+            pitch = smooth_pitch_curve(times, pitch, smoothing_factor=smoothing_factor, min_points=4)
             pitch = 1200 * np.log2(pitch / tonic)
 
             perf_annotations = annotations[
@@ -116,9 +116,9 @@ def varnam_svara_forms(smoothing_factor, interpolation_gap):
                 start_time = float(row["start"])
                 end_time = float(row["end"])
 
-                prec.append(pitch[np.where((time > start_time - 0.5) & (time < start_time))[0]])
-                curr.append(pitch[np.where((time > start_time) & (time < end_time))[0]])
-                succ.append(pitch[np.where((time > end_time) & (time < end_time + 0.5))[0]])
+                prec.append(pitch[np.where((times > start_time - 0.5) & (times < start_time))[0]])
+                curr.append(pitch[np.where((times > start_time) & (times < end_time))[0]])
+                succ.append(pitch[np.where((times > end_time) & (times < end_time + 0.5))[0]])
                 svaras.append(labels.index(row["svara"][0]))
                 clusters.append(row["cluster"])
 
@@ -149,12 +149,12 @@ def iam_svaras(smoothing_factor, interpolation_gap):
 
         annotations = pd.read_csv(os.path.join(DATA_DIR, "IAMMS", "annotations", file), delimiter="\t")
         pitch_track = pd.read_csv(os.path.join(DATA_DIR, "IAMMS", "pitch_tracks", file), delimiter="\t", names=["time", "frequency"], header=None)
-        time = pitch_track["time"].values
+        times = pitch_track["time"].values
         pitch = pitch_track["frequency"].values
         pitch[pitch == 0] = np.nan
 
         pitch = interpolate(pitch, np.nan, interpolation_gap)
-        pitch = smooth_pitch_curve(time, pitch, smoothing_factor=smoothing_factor, min_points=4)
+        pitch = smooth_pitch_curve(times, pitch, smoothing_factor=smoothing_factor, min_points=4)
         pitch = 1200 * np.log2(pitch / tonic)
 
         for _, row in annotations.iterrows():
@@ -163,7 +163,7 @@ def iam_svaras(smoothing_factor, interpolation_gap):
             parts = row["End time"].split(":")
             end_time = float(parts[0]) * 3600 + float(parts[1]) * 60 + float(parts[2])
 
-            segment = pitch[np.where((time >= start_time) & (time <= end_time))[0]]
+            segment = pitch[np.where((times >= start_time) & (times <= end_time))[0]]
             segment = segment[~np.isnan(segment)]
             if len(segment) < 10 or np.ptp(segment) < 50:
                 continue
@@ -185,13 +185,14 @@ def iam_svaras(smoothing_factor, interpolation_gap):
 
 
 def cmmr_plausible_svaras(smoothing_factor, interpolation_gap):
-    tonics = pd.read_csv(os.path.join(DATA_DIR, "CMR", "tonics.tsv"), delimiter="\t")
+    with open(os.path.join(DATA_DIR, "CMR", "tonics.yaml")) as f:
+        tonics = yaml.safe_load(f)
     note_lengths = [0.25, 0.5, 0.75, 1.0, 1.5, 2.0, 3.0]
     plausible_svaras = []
 
     for pitch_track_file in os.listdir(os.path.join(DATA_DIR, "CMR", "pitch_tracks")):
         uid = int(pitch_track_file.replace(".tsv", ""))
-        tonic = tonics[tonics["UID"] == uid]["tonic"].values[0]
+        tonic = float(tonics[uid])
         if tonic is None or np.isnan(tonic):
             continue
 

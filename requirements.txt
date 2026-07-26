@@ -10,7 +10,5 @@ scikit-learn==1.7.1
 scipy==1.15.3
 seaborn==0.13.2
 torch==2.7.1
-torchmetrics
+torchmetrics==1.6.3
 tsaug==0.2.1
-umap-learn==0.5.9.post2
-yq==3.4.3

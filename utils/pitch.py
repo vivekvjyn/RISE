@@ -30,7 +30,9 @@ def smooth_pitch_curve(time_series, pitch_series, smoothing_factor=0.6, min_poin
     return smoothed
 
 
-def interpolate(arr, val, gap, indices=[]):
+def interpolate(arr, val, gap, indices=None):
+    if indices is None:
+        indices = set()
     s = np.copy(arr)
     indices = set(indices)
     if np.isnan(val):

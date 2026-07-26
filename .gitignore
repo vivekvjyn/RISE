@@ -5,3 +5,9 @@ runs/
 *pth
 !*encoder.pth
 !*decoder.pth
+.venv/
+venv/
+dist/
+build/
+.env
+.DS_Store
