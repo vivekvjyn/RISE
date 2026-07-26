@@ -1,4 +1,4 @@
-dataset/
+.cache/
 runs/
 **/__pycache__/
 *.egg-info/

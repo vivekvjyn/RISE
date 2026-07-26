@@ -3,8 +3,13 @@ requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "svara-representation"
+name = "rise"
 version = "0.1.0"
+dependencies = [
+    "rich>=13.0",
+    "mlflow>=2.0",
+]
 
-[tool.setuptools]
-package-dir = {"" = "src"}
+[tool.setuptools.packages.find]
+where = ["", "src"]
+include = ["model*", "utils*", "preprocess*", "pretrain*", "classification*", "clustering*", "pattern_recognition*", "synthesis*"]

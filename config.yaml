@@ -1,0 +1,49 @@
+pitch:
+  smoothing_factor: 0.5
+  interpolation_gap: 0.02
+
+pretrain:
+  batch_size: 256
+  depth: 5
+  embed_dim: 48
+  epochs: 1000
+  lr: 1e-5
+  out_dim: 16
+  patience: 20
+
+classification:
+  batch_size: 64
+  depth: 5
+  embed_dim: 48
+  epochs: 200
+  lr: 1e-3
+  weight_decay: 1e-3
+  catchup: 10
+  early_stopping: 30
+
+clustering:
+  batch_size: 64
+  depth: 5
+  embed_dim: 48
+  epochs: 200
+  lr: 1e-3
+  weight_decay: 1e-3
+  catchup: 10
+  early_stopping: 30
+
+pattern_recognition:
+  depth: 5
+  embed_dim: 48
+  window_size: 200
+
+synthesis:
+  batch_size: 64
+  extract_batch_size: 256
+  depth: 5
+  embed_dim: 48
+  epochs: 200
+  lr: 1e-6
+  out_dim: 16
+  patience: 10
+  accumulation_steps: 8
+  num_plots: 20

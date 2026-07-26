@@ -1,4 +1,0 @@
-params:
-  depth: 5
-  embed_dim: 48
-  window_size: 200

@@ -1,8 +1,0 @@
-params:
-  batch_size: 256
-  depth: 5
-  embed_dim: 48
-  epochs: 1000
-  lr: 1e-5
-  out_dim: 16
-  patience: 20
