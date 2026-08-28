@@ -1,13 +1,27 @@
+# Regenerable intermediates
 .cache/
+results/
+figures/
 runs/
-**/__pycache__/
+mlruns/
+mlflow.db
+
+# Model weights: the two published checkpoints are tracked, the rest are not.
+*.pth
+!checkpoints/encoder.pth
+!checkpoints/decoder.pth
+
+# Python
+__pycache__/
+*.py[cod]
 *.egg-info/
-*pth
-!*encoder.pth
-!*decoder.pth
+build/
+dist/
 .venv/
 venv/
-dist/
-build/
+.ruff_cache/
+.pytest_cache/
+
+# Environment
 .env
 .DS_Store
